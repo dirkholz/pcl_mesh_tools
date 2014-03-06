@@ -3,7 +3,7 @@
 /*
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2011, Dirk Holz, University of Bonn.
+ *  Copyright (c) 2011, Dirk Holz <dirk.holz _at_ ieee.org>
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without

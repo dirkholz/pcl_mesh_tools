@@ -1,4 +1,4 @@
-Copyright (c) 2012, Dirk Holz, <dirk.holz@ieee.org>
+Copyright (c) 2011-2013, Dirk Holz, <dirk.holz _at_ ieee.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
