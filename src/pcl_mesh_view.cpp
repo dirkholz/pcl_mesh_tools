@@ -34,6 +34,103 @@
 #include <pcl/io/vtk_lib_io.h>
 #include <pcl/visualization/pcl_visualizer.h>
 
+pcl::PolygonMesh::Ptr input(new pcl::PolygonMesh);
+
+pcl::PCLPointCloud2::Ptr cloud;
+pcl::visualization::PointCloudColorHandler<pcl::PCLPointCloud2>::Ptr color_handler;
+pcl::visualization::PointCloudGeometryHandler<pcl::PCLPointCloud2>::Ptr geometry_handler;
+
+std::vector< pcl::visualization::PointCloudColorHandler<pcl::PCLPointCloud2> > color_handlers;
+
+boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer;
+bool show_mesh = true;
+bool show_cloud = true;
+int vis_cloud_active_channel = 0;
+
+void updateViewer()
+{ 
+  viewer->setBackgroundColor(1.0, 1.0, 1.0);
+  viewer->removePolygonMesh("input");
+  if (show_mesh)
+    viewer->addPolygonMesh(*input, "input");
+
+  viewer->removePointCloud("cloud");
+  if (show_cloud)
+  {
+    // int active_channel = std::max(0, std::min(static_cast<int>(cloud->fields.size()), active_channel));
+    // if (cloud->fields[active_channel].name == "rgb" || cloud->fields[active_channel].name == "rgba")
+    //   color_handler.reset (new pcl::visualization::PointCloudColorHandlerRGBField<pcl::PCLPointCloud2> (cloud));
+    // else
+    //   color_handler.reset (new pcl::visualization::PointCloudColorHandlerGenericField<pcl::PCLPointCloud2> (cloud, cloud->fields[active_channel].name));
+    geometry_handler.reset(new pcl::visualization::PointCloudGeometryHandlerXYZ<pcl::PCLPointCloud2> (cloud));
+    color_handler.reset (new pcl::visualization::PointCloudColorHandlerRandom<pcl::PCLPointCloud2> (cloud));
+    viewer->addPointCloud (cloud, 
+                           geometry_handler, 
+                           color_handler, 
+                           Eigen::Vector4f::Zero(), 
+                           Eigen::Quaternionf::Identity(), 
+                           "cloud");
+    viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 5, "cloud");
+  }
+}
+
+void keyboardEventOccurred(const pcl::visualization::KeyboardEvent &event, 
+                      void* viewer_void)
+{
+  boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer = *static_cast<boost::shared_ptr<pcl::visualization::PCLVisualizer> *> (viewer_void);
+  if (event.keyDown ())
+  {
+    std::cout  << "keycode " << static_cast<int>(event.getKeyCode()) << " " << event.getKeySym() << std::endl;
+    switch (event.getKeyCode())
+    {
+      case '0':
+        vis_cloud_active_channel = 0;
+        break;
+      case '1':
+        vis_cloud_active_channel = 1;
+        break;
+      case '2':
+        vis_cloud_active_channel = 2;
+        break;
+      case '3':
+        vis_cloud_active_channel = 3;
+        break;
+      case '4':
+        vis_cloud_active_channel = 4;
+        break;
+      case '5':
+        vis_cloud_active_channel = 5;
+        break;
+      case '6':
+        vis_cloud_active_channel = 6;
+        break;
+      case '7':
+        vis_cloud_active_channel = 7;
+        break;
+      case '8':
+        vis_cloud_active_channel = 8;
+        break;
+      case '9':
+        vis_cloud_active_channel = 9;
+        break;
+
+      case 'D':
+        show_cloud = !show_cloud;
+        break;
+
+      case 0:
+        if (event.getKeySym() == "F1")
+          show_mesh = !show_mesh;
+        else if (event.getKeySym() == "F2")
+          show_cloud = !show_cloud;
+        break;
+    }
+
+    updateViewer();
+  }
+}
+
+
 int main (int argc, char** argv)
 {
 
@@ -43,7 +140,6 @@ int main (int argc, char** argv)
     exit (1);
   }
 
-  pcl::PolygonMesh::Ptr input(new pcl::PolygonMesh);
   int nr_poly_points = pcl::io::loadPolygonFile(argv[1], *input);
   int nr_polygons = (int)input->polygons.size();
 
@@ -53,10 +149,22 @@ int main (int argc, char** argv)
     exit (1);
   }
 
-  pcl::visualization::PCLVisualizer viewer(argv[0]);
-  viewer.setBackgroundColor(1.0, 1.0, 1.0);
-  viewer.addPolygonMesh(*input, "input");
+  cloud.reset(new pcl::PCLPointCloud2(input->cloud));
+  // for (size_t i = 0; i < input->cloud.fields.size(); ++i)
+  // {
+  //   if (input->cloud.fields[i].name == "rgb" || input->cloud.fields[i].name == "rgba")
+  //     color_handlers.push_back(pcl::visualization::PointCloudColorHandlerRGBField<pcl::PCLPointCloud2> (cloud));
+  //   else
+  //     color_handlers.push_back(pcl::visualization::PointCloudColorHandlerGenericField<pcl::PCLPointCloud2> (cloud, cloud->fields[i].name));
+  // }
+
+  viewer.reset(new pcl::visualization::PCLVisualizer(argv[0]));
+  viewer->registerKeyboardCallback(keyboardEventOccurred, (void*)&*viewer);
+
+  updateViewer();
   printf("press \"q\" to quit.\n");
-  viewer.spin();
+  viewer->spin();
   return 0;
 }
+
+
