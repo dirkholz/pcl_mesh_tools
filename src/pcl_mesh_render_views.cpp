@@ -69,7 +69,7 @@ int main (int argc, char** argv)
   vtkSmartPointer<vtkPolyData> mapper = filter_scale->GetOutput ();
   mapper->Update ();
 
-  int resolution = 150;
+  int resolution = 300;
   float radius_sphere = 1.5f;
   int tesselation_level = 1;
   float view_angle  = 57.f;
@@ -82,7 +82,7 @@ int main (int argc, char** argv)
   render_views.setTesselationLevel(tesselation_level);
   render_views.setViewAngle(view_angle);
   render_views.addModelFromPolyData (mapper);
-  render_views.setGenOrganized(false);
+  render_views.setGenOrganized(true);
   // render_views.setCamPosConstraints(campos_constraints_func_);
   render_views.generateViews();
 
@@ -91,17 +91,20 @@ int main (int argc, char** argv)
   render_views.getViews (clouds);
   render_views.getPoses (poses);
 
-  PCL_INFO("Rendered %zu points clouds (at %zu poses).\n");
+  PCL_INFO("Rendered %zu points clouds (at %zu poses).\n",
+           clouds.size(), poses.size());
   for (size_t i = 0; i < clouds.size(); ++i)
   {
-    clouds[i]->sensor_origin_.head<3>() = poses[i].block<3,1>(3,0);
-    clouds[i]->sensor_orientation_ = Eigen::Quaternionf(poses[i].block<3,3>(0,0));
-
-    std::string filename = str(boost::format("%s_rendered_view_%zu.pcd") % boost::filesystem::basename(input_file) % i);  
-    pcl::io::savePCDFileBinary(filename, *clouds[i]);\
-    PCL_INFO("Writing file %s", filename.c_str());
+    Eigen::Affine3f m(poses[i]);
+    Eigen::Affine3f m_inv = m.inverse();
+    clouds[i]->sensor_origin_.head<3>() = m_inv.translation().head<3>();
+    clouds[i]->sensor_orientation_ = Eigen::Quaternionf(m_inv.rotation());
+    
+    std::string filename = str (boost::format("%s_rendered_%d.pcd") % boost::filesystem::basename(input_file) % i);
+    PCL_INFO("Writing file %s\n", filename.c_str());
+    pcl::io::savePCDFileBinary(filename, *clouds[i]);
   }
-
+  
   return 0;
 }
 
