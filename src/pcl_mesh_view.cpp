@@ -40,12 +40,10 @@ pcl::PCLPointCloud2::Ptr cloud;
 pcl::visualization::PointCloudColorHandler<pcl::PCLPointCloud2>::Ptr color_handler;
 pcl::visualization::PointCloudGeometryHandler<pcl::PCLPointCloud2>::Ptr geometry_handler;
 
-std::vector< pcl::visualization::PointCloudColorHandler<pcl::PCLPointCloud2> > color_handlers;
-
 boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer;
 bool show_mesh = true;
 bool show_cloud = true;
-int vis_cloud_active_channel = 0;
+int vis_cloud_active_channel = -1; // <0 for random color per cloud
 
 void updateViewer()
 { 
@@ -57,13 +55,18 @@ void updateViewer()
   viewer->removePointCloud("cloud");
   if (show_cloud)
   {
-    // int active_channel = std::max(0, std::min(static_cast<int>(cloud->fields.size()), active_channel));
-    // if (cloud->fields[active_channel].name == "rgb" || cloud->fields[active_channel].name == "rgba")
-    //   color_handler.reset (new pcl::visualization::PointCloudColorHandlerRGBField<pcl::PCLPointCloud2> (cloud));
-    // else
-    //   color_handler.reset (new pcl::visualization::PointCloudColorHandlerGenericField<pcl::PCLPointCloud2> (cloud, cloud->fields[active_channel].name));
+
+    if (vis_cloud_active_channel < 0)
+      color_handler.reset (new pcl::visualization::PointCloudColorHandlerRandom<pcl::PCLPointCloud2> (cloud));
+    else if (vis_cloud_active_channel < static_cast<int>(cloud->fields.size()))
+    {
+      if (cloud->fields[vis_cloud_active_channel].name == "rgb" || 
+          cloud->fields[vis_cloud_active_channel].name == "rgba")
+        color_handler.reset (new pcl::visualization::PointCloudColorHandlerRGBField<pcl::PCLPointCloud2> (cloud));
+      else
+        color_handler.reset (new pcl::visualization::PointCloudColorHandlerGenericField<pcl::PCLPointCloud2> (cloud, cloud->fields[vis_cloud_active_channel].name));
+    }
     geometry_handler.reset(new pcl::visualization::PointCloudGeometryHandlerXYZ<pcl::PCLPointCloud2> (cloud));
-    color_handler.reset (new pcl::visualization::PointCloudColorHandlerRandom<pcl::PCLPointCloud2> (cloud));
     viewer->addPointCloud (cloud, 
                            geometry_handler, 
                            color_handler, 
@@ -80,42 +83,38 @@ void keyboardEventOccurred(const pcl::visualization::KeyboardEvent &event,
   boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer = *static_cast<boost::shared_ptr<pcl::visualization::PCLVisualizer> *> (viewer_void);
   if (event.keyDown ())
   {
-    std::cout  << "keycode " << static_cast<int>(event.getKeyCode()) << " " << event.getKeySym() << std::endl;
+    // std::cout  << "keycode " << static_cast<int>(event.getKeyCode()) << " " << event.getKeySym() << std::endl;
     switch (event.getKeyCode())
     {
-      case '0':
+      case 33: // SHIFT+1
+        vis_cloud_active_channel = -1;
+        break;
+      case 64: // SHIFT+2
         vis_cloud_active_channel = 0;
         break;
-      case '1':
+      case 35: // SHIFT+3
         vis_cloud_active_channel = 1;
         break;
-      case '2':
+      case 36: // SHIFT+4
         vis_cloud_active_channel = 2;
         break;
-      case '3':
+      case 37: // SHIFT+5
         vis_cloud_active_channel = 3;
         break;
-      case '4':
+      case 94: // SHIFT+6
         vis_cloud_active_channel = 4;
         break;
-      case '5':
+      case 38: // SHIFT+7
         vis_cloud_active_channel = 5;
         break;
-      case '6':
+      case 42: // SHIFT+8
         vis_cloud_active_channel = 6;
         break;
-      case '7':
+      case 40: // SHIFT+9
         vis_cloud_active_channel = 7;
         break;
-      case '8':
+      case 41: // SHIFT+0
         vis_cloud_active_channel = 8;
-        break;
-      case '9':
-        vis_cloud_active_channel = 9;
-        break;
-
-      case 'D':
-        show_cloud = !show_cloud;
         break;
 
       case 0:
@@ -123,6 +122,14 @@ void keyboardEventOccurred(const pcl::visualization::KeyboardEvent &event,
           show_mesh = !show_mesh;
         else if (event.getKeySym() == "F2")
           show_cloud = !show_cloud;
+        else if (event.getKeySym() == "F5")
+          vis_cloud_active_channel = 1;
+        else if (event.getKeySym() == "F6")
+          vis_cloud_active_channel = 2;
+        else if (event.getKeySym() == "F7")
+          vis_cloud_active_channel = 3;
+        else if (event.getKeySym() == "F8")
+          vis_cloud_active_channel = 4;
         break;
     }
 
