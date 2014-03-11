@@ -80,10 +80,11 @@ void updateViewer()
 void keyboardEventOccurred(const pcl::visualization::KeyboardEvent &event, 
                       void* viewer_void)
 {
+  // std::cout  << "keycode " << static_cast<int>(event.getKeyCode()) << " " << event.getKeySym() << " DOWN:" << event.keyDown() << " UP:" << event.keyUp() << std::endl;
+
   boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer = *static_cast<boost::shared_ptr<pcl::visualization::PCLVisualizer> *> (viewer_void);
   if (event.keyDown ())
   {
-    // std::cout  << "keycode " << static_cast<int>(event.getKeyCode()) << " " << event.getKeySym() << std::endl;
     switch (event.getKeyCode())
     {
       case 33: // SHIFT+1
