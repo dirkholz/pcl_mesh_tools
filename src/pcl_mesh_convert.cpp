@@ -33,12 +33,13 @@
 
 #include <pcl/io/vtk_lib_io.h>
 #include <pcl/console/print.h>
+#include <pcl/console/parse.h>
 
 int main(int argc, char** argv)
 {
-  if (argc != 3)
+  if (argc < 3)
   {
-    PCL_ERROR("USAGE: %s [input mesh] [output mesh]\n", argv[0]);
+    PCL_ERROR("USAGE: %s [input mesh] [output mesh] [OPT: options...]\n", argv[0]);
     exit(EXIT_FAILURE);
   }
   
@@ -52,7 +53,25 @@ int main(int argc, char** argv)
     PCL_ERROR("Error reading from %s", input.c_str());
     exit(EXIT_FAILURE);
   }
-  
+
+  // Scaling
+  const float INVALID_SCALING_FACTOR = 0.0f;
+  float scaling_factor = INVALID_SCALING_FACTOR;
+  pcl::console::parse_argument(argc, argv, "-scale", scaling_factor);
+  if (scaling_factor != INVALID_SCALING_FACTOR)
+  {
+    PCL_INFO("Scaling input mesh by a factor of %0.4f\n", scaling_factor);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::fromPCLPointCloud2(mesh.cloud, *cloud);
+    for (size_t i = 0; i < cloud->points.size(); ++i)
+    {
+      cloud->points[i].x *= scaling_factor;
+      cloud->points[i].y *= scaling_factor;
+      cloud->points[i].z *= scaling_factor;
+    }
+    pcl::toPCLPointCloud2(*cloud, mesh.cloud);
+  }
+    
   if (pcl::io::savePolygonFile(output, mesh) <= 0)
   {
     PCL_ERROR("Error writing to %s", input.c_str());
