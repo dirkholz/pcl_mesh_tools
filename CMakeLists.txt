@@ -18,4 +18,4 @@ link_libraries(${PCL_LIBRARIES} boost_thread boost_filesystem boost_system pthre
 
 add_executable(pcl_mesh_convert src/pcl_mesh_convert.cpp)
 add_executable(pcl_mesh_view src/pcl_mesh_view.cpp)
-add_executable(pcl_mesh_render_views src/pcl_mesh_render_views.cpp)
+# add_executable(pcl_mesh_render_views src/pcl_mesh_render_views.cpp)
